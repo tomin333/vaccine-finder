@@ -4,7 +4,7 @@ Android app to continuosly search for vaccination centers with slots available.
 <!-- GETTING STARTED -->
 ## About Vaccine Finder
 
-Vaccine Finder makes use of the public API provided by Gov. Of India to make vaccine information available to users. The app tries to fetch details from [Co-WIN Public APIs] (https://apisetu.gov.in/public/marketplace/api/cowin) and match it with users search criteria. If any matches are found, app notifies the user.
+Vaccine Finder makes use of the public API provided by Gov. Of India to make vaccine information available to users. The app tries to fetch details from [Co-WIN Public APIs](https://apisetu.gov.in/public/marketplace/api/cowin) and match it with users search criteria. If any matches are found, app notifies the user.
 
 
 <!-- USAGE EXAMPLES -->
