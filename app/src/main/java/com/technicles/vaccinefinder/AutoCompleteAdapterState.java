@@ -5,8 +5,8 @@ import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 
-import com.technicles.vaccinefinder.response.DistrictModel;
-import com.technicles.vaccinefinder.response.DistrictsResponse;
+import com.technicles.vaccinefinder.response.StateModel;
+import com.technicles.vaccinefinder.response.StateResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,34 +18,38 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-class AutoCompleteAdapter extends ArrayAdapter<String> implements Filterable {
+class AutoCompleteAdapterState extends ArrayAdapter<String> implements Filterable {
     private ArrayList<String> data;
-    public static List<DistrictModel> districts;
-    public static List<DistrictModel> filteredDistricts;
 
-    AutoCompleteAdapter(@NonNull Context context, @LayoutRes int resource) {
+    public static List<StateModel> states;
+    public static List<StateModel> filteredStates;
+    MainActivity activity;
+
+    AutoCompleteAdapterState(@NonNull Context context, @LayoutRes int resource) {
         super(context, resource);
-        this.districts = new ArrayList<>();
+        this.states = new ArrayList<>();
         this.data = new ArrayList<>();
-
+        this.activity = (MainActivity) context;
         fetchDistricts();
     }
 
     public void fetchDistricts() {
         RetrofitInterface retrofitInterface = RetrofitInstance.getRetrofitInstance().create(RetrofitInterface.class);
 
-        Call<DistrictsResponse> listCall = retrofitInterface.getDistrictsByState("17");
-        listCall.enqueue(new Callback<DistrictsResponse>() {
+        Call<StateResponse> listCall = retrofitInterface.getStates();
+        listCall.enqueue(new Callback<StateResponse>() {
             @Override
-            public void onResponse(Call<DistrictsResponse> call, Response<DistrictsResponse> response) {
+            public void onResponse(Call<StateResponse> call, Response<StateResponse> response) {
                 if (null == response.body())
                     return;
 
-                districts = response.body().getResponse();
+                states = response.body().getResponse();
+                notifyDataSetChanged();
+                activity.autoCompleteAdapter.fetchDistricts();
             }
 
             @Override
-            public void onFailure(Call<DistrictsResponse> call, Throwable t) {
+            public void onFailure(Call<StateResponse> call, Throwable t) {
                 t.printStackTrace();
             }
         });
@@ -72,12 +76,12 @@ class AutoCompleteAdapter extends ArrayAdapter<String> implements Filterable {
                 if (constraint != null) {
                     String search = String.valueOf(constraint);
                     ArrayList<String> suggestions = new ArrayList<>();
-                    filteredDistricts = new ArrayList<>();
-                    for (int ind = 0; ind < districts.size(); ind++) {
-                        String dName = districts.get(ind).getDistrictName();
+                    filteredStates = new ArrayList<>();
+                    for (int ind = 0; ind < states.size(); ind++) {
+                        String dName = states.get(ind).getStateName();
                         if (dName.toLowerCase().contains(search.toLowerCase())) {
-                            suggestions.add(districts.get(ind).getDistrictName());
-                            filteredDistricts.add(districts.get(ind));
+                            suggestions.add(states.get(ind).getStateName());
+                            filteredStates.add(states.get(ind));
                         }
                     }
                     results.values = suggestions;

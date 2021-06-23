@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
@@ -24,11 +23,6 @@ public class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
     public SessionAdapter(RecyclerView recyclerView, List<AvailabilityModel> availabilityModels,
                           Activity activity) {
         this.activity = activity;
-
-        List<AvailabilityModel> pinnedModels =
-                availabilityModels.stream().filter(m -> m.getPincode().equals(((MainActivity) activity).getSelectedPincode())).collect(Collectors.toList());
-        availabilityModels.removeAll(pinnedModels);
-        availabilityModels.addAll(0, pinnedModels);
 
         this.availabilityModels = availabilityModels;
     }

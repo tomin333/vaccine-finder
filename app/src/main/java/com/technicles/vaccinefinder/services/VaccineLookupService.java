@@ -43,7 +43,9 @@ public class VaccineLookupService extends Service {
     public volatile AtomicInteger count;
 
     String districtId;
+    String stateId;
     String district;
+    String state;
     String pincode;
     Boolean isA45;
     Boolean isA18;
@@ -70,7 +72,9 @@ public class VaccineLookupService extends Service {
         notifiedSessionIds = new ArrayList<>();
         if (intent != null) {
             district = intent.getStringExtra("district");
+            state = intent.getStringExtra("state");
             districtId = intent.getStringExtra("districtId");
+            stateId = intent.getStringExtra("stateId");
             pincode = intent.getStringExtra("pincode");
             isA45 = intent.getBooleanExtra("isA45", false);
             isA18 = intent.getBooleanExtra("isA18", false);
@@ -167,7 +171,7 @@ public class VaccineLookupService extends Service {
                 RetrofitInstance.getRetrofitInstance().create(RetrofitInterface.class);
 
         Call<CenterResponse> listCall =
-                retrofitInterface.getCalendarByDistrict(VaccineFinderUtil.getPref(getBaseContext()).getString("selectedDistrictId", "304"),
+                retrofitInterface.getCalendarByDistrict(getDistrictId(),
                         VaccineFinderUtil.getCurrentDate());
         listCall.enqueue(new Callback<CenterResponse>() {
             @Override
@@ -363,5 +367,21 @@ public class VaccineLookupService extends Service {
 
     public void setUnfilteredModels(List<CenterModel> unfilteredModels) {
         this.unfilteredModels = unfilteredModels;
+    }
+
+    public String getStateId() {
+        return stateId;
+    }
+
+    public void setStateId(String stateId) {
+        this.stateId = stateId;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
     }
 }

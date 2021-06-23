@@ -26,32 +26,53 @@
             android:textSize="20dp"
             android:textStyle="bold" />
 
-
         <RelativeLayout
             android:id="@+id/criteria"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/appTitle"
-            android:layout_marginStart="10dp">
+            android:layout_below="@id/appTitle">
 
-            <AutoCompleteTextView
-                android:id="@+id/district"
+            <LinearLayout
+                android:id="@+id/stateDistrict"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@color/primaryThemeColor"
-                android:hint="Enter district"
-                android:padding="20dp" />
+                android:orientation="horizontal"
+                android:weightSum="2">
+
+                <AutoCompleteTextView
+                    android:id="@+id/state"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/primaryThemeColor"
+                    android:hint="Enter state"
+                    android:padding="20dp"
+                    android:windowSoftInputMode="stateHidden" />
+
+                <AutoCompleteTextView
+                    android:id="@+id/district"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:backgroundTint="@color/primaryThemeColor"
+                    android:hint="Enter district"
+                    android:padding="20dp"
+                    android:windowSoftInputMode="stateHidden" />
+
+            </LinearLayout>
 
             <EditText
                 android:id="@+id/pincode"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/district"
+                android:layout_below="@id/stateDistrict"
                 android:backgroundTint="@color/primaryThemeColor"
                 android:hint="Enter pin within district"
                 android:inputType="number"
-                android:padding="20dp"></EditText>
+                android:padding="20dp"
+                android:windowSoftInputMode="stateHidden"></EditText>
         </RelativeLayout>
+
 
         <RelativeLayout
             android:id="@+id/ageselections"
@@ -174,12 +195,12 @@
 
             <TextView
                 android:id="@+id/requestDetails"
-                android:textColor="@color/grey_700"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/waitingImage"
                 android:layout_centerHorizontal="true"
-                android:layout_marginTop="20dp" />
+                android:layout_marginTop="20dp"
+                android:textColor="@color/grey_700" />
 
         </RelativeLayout>
 

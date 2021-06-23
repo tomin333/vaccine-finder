@@ -8,7 +8,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
@@ -31,6 +30,7 @@ import android.widget.Toast;
 import com.judemanutd.autostarter.AutoStartPermissionHelper;
 import com.technicles.vaccinefinder.response.CenterModel;
 import com.technicles.vaccinefinder.response.DistrictModel;
+import com.technicles.vaccinefinder.response.StateModel;
 import com.technicles.vaccinefinder.services.VaccineLookupService;
 
 import java.text.DateFormat;
@@ -40,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
@@ -50,19 +51,22 @@ public class MainActivity extends Activity {
     Button searchBtn;
     boolean searchInProgress;
 
-    AutoCompleteAdapter autoCompleteAdapter;
+    AutoCompleteAdapterDistrict autoCompleteAdapter;
+    AutoCompleteAdapterState autoCompleteAdapterState;
 
 
-    public static AutoCompleteTextView districtU;
-    public static EditText pincodeU;
-    public static CheckBox isA45U;
-    public static CheckBox isA18U;
-    public static CheckBox a45dose1U;
-    public static CheckBox a45dose2U;
-    public static CheckBox a18dose1U;
-    public static CheckBox a18dose2U;
+    public AutoCompleteTextView districtU;
+    public AutoCompleteTextView stateU;
+    public EditText pincodeU;
+    public CheckBox isA45U;
+    public CheckBox isA18U;
+    public CheckBox a45dose1U;
+    public CheckBox a45dose2U;
+    public CheckBox a18dose1U;
+    public CheckBox a18dose2U;
 
     public static String district;
+    public static String state;
     public static String pincode;
     public static boolean isA45;
     public static boolean isA18;
@@ -73,11 +77,11 @@ public class MainActivity extends Activity {
 
     private String selectedPincode;
     private String selectedDistrictId;
+    private String selectedStateId;
 
     private SessionAdapter adapter;
     private RecyclerView recyclerView;
 
-    private long lastApiSuccessTime;
     private RelativeLayout requestDetailsLayout;
 
     ServiceConnection serviceConnection = null;
@@ -122,8 +126,22 @@ public class MainActivity extends Activity {
         districtU.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                DistrictModel item = AutoCompleteAdapter.filteredDistricts.get(position);
+                DistrictModel item = AutoCompleteAdapterDistrict.filteredDistricts.get(position);
                 selectedDistrictId = item.getDistrictId();
+            }
+        });
+
+        stateU.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                StateModel item = AutoCompleteAdapterState.filteredStates.get(position);
+                if (!item.getStateId().equals(selectedStateId)) {
+                    selectedDistrictId = null;
+                    districtU.setText("");
+                }
+                selectedStateId = item.getStateId();
+                autoCompleteAdapter.fetchDistricts();
+
             }
         });
 
@@ -163,6 +181,7 @@ public class MainActivity extends Activity {
     }
 
     public void readInputs() {
+        state = stateU.getText().toString();
         district = districtU.getText().toString();
         pincode = pincodeU.getText().toString();
         isA45 = isA45U.isChecked();
@@ -175,9 +194,13 @@ public class MainActivity extends Activity {
 
     public boolean validateInputs() {
         DistrictModel selectedDistrictModel =
-                AutoCompleteAdapter.districts.stream().filter(d -> (d.getDistrictId().equals(selectedDistrictId) && d.getDistrictName().equals(district))).findAny().orElse(null);
+                AutoCompleteAdapterDistrict.districts.stream().filter(d -> (d.getDistrictId().equals(selectedDistrictId) && d.getDistrictName().equals(district))).findAny().orElse(null);
+        StateModel selectedStateModel = AutoCompleteAdapterState.states.stream().filter(d -> (d.getStateId().equals(selectedStateId) && d.getStateName().equals(state))).findAny().orElse(null);
 
-        if (selectedDistrictModel == null) {
+        if (selectedStateModel == null) {
+            Toast.makeText(this, "Invalid state", Toast.LENGTH_SHORT).show();
+            return false;
+        } else if (selectedDistrictModel == null) {
             Toast.makeText(this, "Invalid district", Toast.LENGTH_SHORT).show();
             return false;
         } else if (!VaccineFinderUtil.isValidPinCode(pincode)) {
@@ -200,19 +223,6 @@ public class MainActivity extends Activity {
 
         this.selectedPincode = pincode;
 
-
-        SharedPreferences.Editor pref = VaccineFinderUtil.getPref(getBaseContext()).edit();
-        pref.putString("district", district);
-        pref.putString("pincode", pincode);
-        pref.putBoolean("isA45", isA45);
-        pref.putBoolean("isA18", isA18);
-        pref.putBoolean("a45dose1", a45dose1);
-        pref.putBoolean("a45dose2", a45dose2);
-        pref.putBoolean("a18dose1", a18dose1);
-        pref.putBoolean("a18dose2", a18dose2);
-
-        pref.apply();
-
         return true;
     }
 
@@ -222,6 +232,7 @@ public class MainActivity extends Activity {
 
         serviceIntent = new Intent(this, VaccineLookupService.class);
         serviceIntent.putExtra("district", district);
+        serviceIntent.putExtra("state", state);
         serviceIntent.putExtra("pincode", pincode);
         serviceIntent.putExtra("isA45", isA45);
         serviceIntent.putExtra("isA18", isA18);
@@ -230,6 +241,7 @@ public class MainActivity extends Activity {
         serviceIntent.putExtra("a18dose1", a18dose1);
         serviceIntent.putExtra("a18dose2", a18dose2);
         serviceIntent.putExtra("districtId", selectedDistrictId);
+        serviceIntent.putExtra("stateId", selectedStateId);
         ContextCompat.startForegroundService(this, serviceIntent);
 
         if (adapter != null) {
@@ -309,7 +321,8 @@ public class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        unbindService(serviceConnection);
+        if (serviceConnection != null)
+            unbindService(serviceConnection);
     }
 
     private boolean isServiceRunning(Class<?> serviceClass) {
@@ -343,6 +356,13 @@ public class MainActivity extends Activity {
                         List<AvailabilityModel> models = runningService.getAvailabilityModels();
                         if (null != models && models.size() > 0 && runningService.getCount().get() > adapter.updateCount) {
                             recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this));
+
+                            List<AvailabilityModel> pinnedModels =
+                                    models.stream().filter(m -> m.getPincode().equals(getSelectedPincode())).collect(Collectors.toList());
+                            models.removeAll(pinnedModels);
+                            models.addAll(0, pinnedModels);
+
+
                             adapter.availabilityModels = models;
                             adapter.notifyDataSetChanged();
                             adapter.updateCount = runningService.getCount().get();
@@ -375,6 +395,8 @@ public class MainActivity extends Activity {
 
     public void initServiceStateInUI(VaccineLookupService service) {
         this.selectedDistrictId = service.getDistrictId();
+        this.selectedStateId = service.getStateId();
+        this.stateU.setText(service.getState());
         this.districtU.setText(service.getDistrict());
         this.pincodeU.setText(service.getPincode());
         this.isA45U.setChecked(service.getA45());
@@ -390,6 +412,7 @@ public class MainActivity extends Activity {
     }
 
     public void disableInputs() {
+        stateU.setEnabled(false);
         districtU.setEnabled(false);
         pincodeU.setEnabled(false);
         isA45U.setEnabled(false);
@@ -402,6 +425,7 @@ public class MainActivity extends Activity {
 
     public void enableInputs() {
         initDefaultUI();
+        stateU.setEnabled(true);
         districtU.setEnabled(true);
         pincodeU.setEnabled(true);
         isA45U.setEnabled(true);
@@ -448,15 +472,18 @@ public class MainActivity extends Activity {
     public void initUIFields() {
         requestDetailsLayout = findViewById(R.id.requestDetailsLayout);
 
-        autoCompleteAdapter = new AutoCompleteAdapter(this,
+        autoCompleteAdapter = new AutoCompleteAdapterDistrict(this,
+                android.R.layout.simple_dropdown_item_1line);
+
+        autoCompleteAdapterState = new AutoCompleteAdapterState(this,
                 android.R.layout.simple_dropdown_item_1line);
 
         recyclerView = (RecyclerView) findViewById(R.id.recycler_view);
 
         searchBtn = findViewById(R.id.searchBtn);
 
-
         districtU = findViewById(R.id.district);
+        stateU = findViewById(R.id.state);
         pincodeU = findViewById(R.id.pincode);
         isA45U = findViewById(R.id.isA45U);
         isA18U = findViewById(R.id.isA18U);
@@ -466,6 +493,7 @@ public class MainActivity extends Activity {
         a18dose2U = findViewById(R.id.a18dose2U);
 
         districtU.setAdapter(autoCompleteAdapter);
+        stateU.setAdapter(autoCompleteAdapterState);
     }
 
     public void initDefaultUI() {
@@ -510,5 +538,13 @@ public class MainActivity extends Activity {
 
     public void setSelectedDistrictId(String selectedDistrictId) {
         this.selectedDistrictId = selectedDistrictId;
+    }
+
+    public String getSelectedStateId() {
+        return selectedStateId;
+    }
+
+    public void setSelectedStateId(String selectedStateId) {
+        this.selectedStateId = selectedStateId;
     }
 }
