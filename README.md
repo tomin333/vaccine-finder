@@ -11,7 +11,7 @@ Vaccine Finder makes use of the public API provided by Gov. Of India to make vac
 ## Usage
 
 Clone the repository and open it in any IDE of your choice (Android studio is preffered)
-The apk's are found in the apks branch.
+
 
 
 <!-- CONTRIBUTING -->
