@@ -11,15 +11,15 @@ Vaccine Finder makes use of the public API provided by Gov. Of India to make vac
 ## Usage
 
 Clone the repository and open it in any IDE of your choice (Android studio is preffered)
-The apk's are found in the apks branch.
+
 
 
 <!-- CONTRIBUTING -->
 ## Contributing
 You can contribute to the project by following the below approach:
 1. Fork the Project
-2. Create your Feature or Bugfix Branch (git checkout -b feature/buxfix)
-3. Commit and push your Changes (git commit -m 'Add some feature/buxfix') (git push origin feature/buxfix)
+2. Create your Feature or Bugfix Branch (git checkout -b feature/bugfix)
+3. Commit and push your Changes (git commit -m 'Add some feature/bugfix') (git push origin feature/buxfix)
 4. Open a Pull Request
 <!-- LICENSE -->
 ## License
