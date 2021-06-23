@@ -1,6 +1,8 @@
 package com.technicles.vaccinefinder;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -112,6 +114,13 @@ public class SessionAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             feeType = view.findViewById(R.id.feeType);
             cost = view.findViewById(R.id.cost);
             vaccineName = view.findViewById(R.id.vaccineName);
+
+            view.setOnClickListener((v)->{
+                String url = "https://selfregistration.cowin.gov.in/";
+                Intent i = new Intent(Intent.ACTION_VIEW);
+                i.setData(Uri.parse(url));
+                activity.startActivity(i);
+            });
         }
     }
 

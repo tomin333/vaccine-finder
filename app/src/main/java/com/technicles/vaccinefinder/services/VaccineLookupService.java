@@ -11,8 +11,6 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.view.View;
-import android.widget.RemoteViews;
 
 import com.technicles.vaccinefinder.AppConstants;
 import com.technicles.vaccinefinder.AvailabilityModel;
@@ -32,7 +30,6 @@ import java.util.stream.Collectors;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
-import androidx.core.content.ContextCompat;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -97,9 +94,6 @@ public class VaccineLookupService extends Service {
 
 
     public void notification() {
-        NotificationCompat.InboxStyle inboxStyle = new NotificationCompat.InboxStyle();
-
-        RemoteViews defaultNotificationView = getDefaultNotificationView();
         if (Build.VERSION.SDK_INT >= 26) {
             String CHANNEL_ID = "com.technicles.vaccinefinder";
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
@@ -108,6 +102,14 @@ public class VaccineLookupService extends Service {
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
 
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
+                    .setContentTitle("Vaccine Finder")
+                    .setContentText("Actively looking for vaccines")
+                    .setSmallIcon(R.drawable.notif_icon)
+                    .build();
+
+            startForeground(1, notification);
+        } else {
+            Notification notification = new NotificationCompat.Builder(this, null)
                     .setContentTitle("Vaccine Finder")
                     .setContentText("Actively looking for vaccines")
                     .setSmallIcon(R.drawable.notif_icon)
@@ -123,8 +125,8 @@ public class VaccineLookupService extends Service {
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setSmallIcon(R.drawable.notif_icon)
-                        .setContentTitle("Vaccine found!!")
-                        .setContentText("Slots available - Open the app to view details");
+                        .setContentTitle("Vaccine slots found!!")
+                        .setContentText("Slots available - tap to view details");
 
         Intent targetIntent = new Intent(this, MainActivity.class);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent,
@@ -133,25 +135,6 @@ public class VaccineLookupService extends Service {
         NotificationManager nManager =
                 (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nManager.notify(AppConstants.NOTIFICATION_ID, builder.build());
-    }
-
-    public RemoteViews getDefaultNotificationView() {
-        RemoteViews notificationView = new RemoteViews(getPackageName(),
-                R.layout.notification_custom_1);
-
-        notificationView.setTextViewText(R.id.content_title, getString(R.string.app_name));
-
-        notificationView.setViewVisibility(R.id.content_text, View.GONE);
-
-
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.M) {
-            notificationView.setTextColor(R.id.content_title, ContextCompat.getColor(this,
-                    R.color.black));
-            notificationView.setTextColor(R.id.content_text, ContextCompat.getColor(this,
-                    R.color.black));
-        }
-
-        return notificationView;
     }
 
 
@@ -209,11 +192,10 @@ public class VaccineLookupService extends Service {
                 if (session.getAvailableCapacity() == 0) {
                     continue;
                 } else {
-                    if ((a45dose1 && session.getAvailableCapacityDose1() == 0)
-                            && (a45dose2 && session.getAvailableCapacityDose2() == 0)
-                            && (isA18 && session.getMinAgeLimit() > 18)
-                            && (a18dose1 && session.getAvailableCapacityDose1() == 0)
-                            && (a18dose2 && session.getAvailableCapacityDose2() == 0)) {
+                    if (!((isA45 && session.getMinAgeLimit() == 45 && a45dose1 && session.getAvailableCapacityDose1() > 0)
+                            || (isA45 && session.getMinAgeLimit() == 45 && a45dose2 && session.getAvailableCapacityDose2() > 0)
+                            || (isA18 && session.getMinAgeLimit() == 18 && a18dose1 && session.getAvailableCapacityDose1() > 0)
+                            || (isA18 && session.getMinAgeLimit() == 18 && a18dose2 && session.getAvailableCapacityDose2() > 0))) {
                         continue;
                     }
                 }
@@ -259,8 +241,10 @@ public class VaccineLookupService extends Service {
             return false;
         }
 
-        if (newList.size() < notifiedSessionIds.size() && !newList.removeAll(notifiedSessionIds)) {
-            return false;
+        if (newList.size() < notifiedSessionIds.size()) {
+            newList.removeAll(notifiedSessionIds);
+
+            return !newList.isEmpty();
         }
 
         return true;
@@ -268,7 +252,10 @@ public class VaccineLookupService extends Service {
 
     private Runnable updateTimerThread = new Runnable() {
         public void run() {
-            apiCalls();
+            if (VaccineFinderUtil.haveNetworkConnection(getBaseContext())) {
+                apiCalls();
+            }
+
             customHandler.postDelayed(this, 60000);
         }
     };

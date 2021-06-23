@@ -2,6 +2,8 @@ package com.technicles.vaccinefinder;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 import java.text.SimpleDateFormat;
@@ -14,6 +16,17 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class VaccineFinderUtil {
+
+    public static boolean haveNetworkConnection(Context context) {
+        ConnectivityManager cm =
+                (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null &&
+                activeNetwork.isConnectedOrConnecting();
+
+        return isConnected;
+    }
 
     public static boolean equalLists(List<String> a, List<String> b) {
         // Check for sizes and nulls

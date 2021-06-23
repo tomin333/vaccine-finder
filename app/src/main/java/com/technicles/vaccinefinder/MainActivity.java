@@ -2,11 +2,14 @@ package com.technicles.vaccinefinder;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -25,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.judemanutd.autostarter.AutoStartPermissionHelper;
 import com.technicles.vaccinefinder.response.CenterModel;
 import com.technicles.vaccinefinder.response.DistrictModel;
 import com.technicles.vaccinefinder.services.VaccineLookupService;
@@ -85,6 +89,28 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        if (!VaccineFinderUtil.haveNetworkConnection(this)) {
+            final AlertDialog alertDialog = new AlertDialog.Builder(this)
+                    .setTitle("No internet connection")
+                    .setMessage("Please make sure you have an active data connection.")
+                    .setCancelable(false)
+                    .setPositiveButton("RETRY", null).setNegativeButton("EXIT", (d, w) -> {
+                        d.dismiss();
+                        finishAndRemoveTask();
+                    }).show();
+
+            Button b = alertDialog.getButton(AlertDialog.BUTTON_POSITIVE);
+            b.setOnClickListener(view -> {
+                if (VaccineFinderUtil.haveNetworkConnection(MainActivity.this)) {
+                    alertDialog.dismiss();
+                    recreate();
+                }
+
+            });
+        }
+
+
         initUIFields();
 
         if (isServiceRunning(VaccineLookupService.class)) {
@@ -103,7 +129,19 @@ public class MainActivity extends Activity {
 
         searchBtn.setOnClickListener((view) -> {
             if (!searchInProgress) {
-                this.startLookup();
+                if (VaccineFinderUtil.haveNetworkConnection(this)) {
+                    this.startLookup();
+                } else {
+                    new AlertDialog.Builder(this)
+                            .setTitle("No internet connection")
+                            .setCancelable(false)
+                            .setMessage("Please make sure you have an active data connection.")
+                            .setPositiveButton(android.R.string.ok, (d, w) -> {
+                                d.dismiss();
+                            })
+                            .show();
+                }
+
             } else {
                 stopService();
                 enableInputs();
@@ -180,17 +218,7 @@ public class MainActivity extends Activity {
 
 
     public void startService() {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            Intent intent = new Intent();
-            String packageName = getPackageName();
-            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
-            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
-                intent.setAction(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
-                intent.setData(Uri.parse("package:" + packageName));
-                startActivity(intent);
-                return;
-            }
-        }
+        handleDozeMode();
 
         serviceIntent = new Intent(this, VaccineLookupService.class);
         serviceIntent.putExtra("district", district);
@@ -204,6 +232,70 @@ public class MainActivity extends Activity {
         serviceIntent.putExtra("districtId", selectedDistrictId);
         ContextCompat.startForegroundService(this, serviceIntent);
 
+        if (adapter != null) {
+            adapter.availabilityModels = new ArrayList<>();
+        }
+
+    }
+
+    public void handleDozeMode() {
+
+        /* Is autostarup permission needed? */
+        if (AutoStartPermissionHelper.getInstance().isAutoStartPermissionAvailable(this)) {
+            AutoStartPermissionHelper.getInstance().getAutoStartPermission(this);
+        }
+        /* I hate the doze mode */
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            Intent intent = new Intent();
+            String packageName = getPackageName();
+            PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+            if (!pm.isIgnoringBatteryOptimizations(packageName)) {
+                new AlertDialog.Builder(this)
+                        .setTitle("Permission required")
+                        .setCancelable(false)
+                        .setMessage("In order for the app to run in background, please allow VaccineFinder to run unrestrictedly in the background.")
+                        .setPositiveButton(android.R.string.yes,
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+                                        intent.setAction(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS);
+                                        startActivity(intent);
+                                    }
+                                })
+                        .show();
+            }
+
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ConnectivityManager connMgr = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            // Checks if the device is on a metered network
+            if (connMgr.isActiveNetworkMetered()) {
+                // Checks user’s Data Saver settings.
+                switch (connMgr.getRestrictBackgroundStatus()) {
+                    case ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED:
+                    case ConnectivityManager.RESTRICT_BACKGROUND_STATUS_DISABLED:
+
+
+                        new AlertDialog.Builder(this)
+                                .setTitle("Permission required")
+                                .setCancelable(false)
+                                .setMessage("In order for the app to run in background, please allow Vaccine Finder to connect to the COWIN API in the background")
+                                .setPositiveButton(android.R.string.yes,
+                                        new DialogInterface.OnClickListener() {
+                                            public void onClick(DialogInterface dialog, int which) {
+                                                Intent intent = new Intent();
+                                                intent.setAction(android.provider.Settings.ACTION_IGNORE_BACKGROUND_DATA_RESTRICTIONS_SETTINGS);
+                                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                                intent.setData(Uri.parse("package:" + getPackageName()));
+
+                                                startActivity(intent);
+                                            }
+                                        })
+                                .show();
+                }
+            }
+        }
     }
 
     public void stopService() {
@@ -212,6 +304,12 @@ public class MainActivity extends Activity {
         servicePollHandler.removeCallbacksAndMessages(null);
         requestDetailsLayout.setVisibility(View.GONE);
 
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unbindService(serviceConnection);
     }
 
     private boolean isServiceRunning(Class<?> serviceClass) {
@@ -303,6 +401,7 @@ public class MainActivity extends Activity {
     }
 
     public void enableInputs() {
+        initDefaultUI();
         districtU.setEnabled(true);
         pincodeU.setEnabled(true);
         isA45U.setEnabled(true);
