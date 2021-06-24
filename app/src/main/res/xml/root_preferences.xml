@@ -1,0 +1,19 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <PreferenceCategory app:title="Support">
+
+        <Preference
+            android:icon="@drawable/ic_baseline_code_24"
+            android:key="contribute"
+            android:summary="View Sourcecode on GitHub"
+            android:title="Contribute" />
+
+        <Preference
+            android:icon="@drawable/ic_baseline_share_24"
+            android:key="share"
+            android:summary="Share this app with your friends"
+            android:title="Share" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

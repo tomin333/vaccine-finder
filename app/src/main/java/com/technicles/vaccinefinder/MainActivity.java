@@ -64,6 +64,7 @@ public class MainActivity extends Activity {
     public CheckBox a45dose2U;
     public CheckBox a18dose1U;
     public CheckBox a18dose2U;
+    public Button settingsU;
 
     public static String district;
     public static String state;
@@ -492,8 +493,17 @@ public class MainActivity extends Activity {
         a18dose1U = findViewById(R.id.a18dose1U);
         a18dose2U = findViewById(R.id.a18dose2U);
 
+        settingsU = findViewById(R.id.settings);
+
         districtU.setAdapter(autoCompleteAdapter);
         stateU.setAdapter(autoCompleteAdapterState);
+
+
+        settingsU.setOnClickListener((v)->{
+            Intent intent = new Intent(this, SettingsActivity.class);
+
+            startActivity(intent);
+        });
     }
 
     public void initDefaultUI() {

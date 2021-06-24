@@ -26,6 +26,17 @@
             android:textSize="20dp"
             android:textStyle="bold" />
 
+        <Button
+            android:id="@+id/settings"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="15dp"
+            android:layout_marginEnd="15dp"
+            android:background="@drawable/ic_baseline_settings_24"
+            android:backgroundTint="@color/white"
+            android:src="@drawable/ic_baseline_settings_24" />
+
         <RelativeLayout
             android:id="@+id/criteria"
             android:layout_width="match_parent"
@@ -194,10 +205,21 @@
                 android:src="@drawable/timer"></ImageView>
 
             <TextView
-                android:id="@+id/requestDetails"
+                android:id="@+id/wait_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_below="@id/waitingImage"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="20dp"
+                android:breakStrategy="simple"
+                android:text="Please wait.. We are actively searching for vaccination slots."
+                android:textColor="@color/grey_400" />
+
+            <TextView
+                android:id="@+id/requestDetails"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/wait_text"
                 android:layout_centerHorizontal="true"
                 android:layout_marginTop="20dp"
                 android:textColor="@color/grey_700" />

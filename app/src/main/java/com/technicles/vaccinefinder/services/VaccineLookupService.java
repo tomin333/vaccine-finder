@@ -8,6 +8,9 @@ import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
@@ -99,11 +102,17 @@ public class VaccineLookupService extends Service {
 
     public void notification() {
         if (Build.VERSION.SDK_INT >= 26) {
-            String CHANNEL_ID = "com.technicles.vaccinefinder";
+            String CHANNEL_ID = AppConstants.CHANNEL_ID;
+            AudioAttributes audioAttributes = new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .setUsage(AudioAttributes.USAGE_ALARM)
+                    .build();
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID,
                     "Vaccine",
                     NotificationManager.IMPORTANCE_DEFAULT);
+            channel.setSound(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.c1), audioAttributes);
             ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).createNotificationChannel(channel);
+
 
             Notification notification = new NotificationCompat.Builder(this, CHANNEL_ID)
                     .setContentTitle("Vaccine Finder")
@@ -117,6 +126,7 @@ public class VaccineLookupService extends Service {
                     .setContentTitle("Vaccine Finder")
                     .setContentText("Actively looking for vaccines")
                     .setSmallIcon(R.drawable.notif_icon)
+                    .setSound(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.c1), AudioManager.STREAM_ALARM)
                     .build();
 
             startForeground(1, notification);
@@ -125,11 +135,12 @@ public class VaccineLookupService extends Service {
 
 
     public void vaccineFoundNotify() {
-        String CHANNEL_ID = "com.technicles.vaccinefinder";
+        String CHANNEL_ID = AppConstants.CHANNEL_ID;
         NotificationCompat.Builder builder =
                 new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setSmallIcon(R.drawable.notif_icon)
                         .setContentTitle("Vaccine slots found!!")
+                        .setSound(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.c1), AudioManager.STREAM_ALARM)
                         .setContentText("Slots available - tap to view details");
 
         Intent targetIntent = new Intent(this, MainActivity.class);
