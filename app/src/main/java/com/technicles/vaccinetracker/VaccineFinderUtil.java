@@ -1,4 +1,4 @@
-package com.technicles.vaccinefinder;
+package com.technicles.vaccinetracker;
 
 import android.content.Context;
 import android.content.SharedPreferences;

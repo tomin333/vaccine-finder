@@ -1,4 +1,4 @@
-package com.technicles.vaccinefinder;
+package com.technicles.vaccinetracker;
 
 import android.app.Activity;
 import android.app.ActivityManager;
@@ -28,10 +28,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.judemanutd.autostarter.AutoStartPermissionHelper;
-import com.technicles.vaccinefinder.response.CenterModel;
-import com.technicles.vaccinefinder.response.DistrictModel;
-import com.technicles.vaccinefinder.response.StateModel;
-import com.technicles.vaccinefinder.services.VaccineLookupService;
+import com.technicles.vaccinetracker.response.CenterModel;
+import com.technicles.vaccinetracker.response.DistrictModel;
+import com.technicles.vaccinetracker.response.StateModel;
+import com.technicles.vaccinetracker.services.VaccineLookupService;
 
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -312,6 +312,8 @@ public class MainActivity extends Activity {
     }
 
     public void stopService() {
+        if (null != runningService)
+            runningService.getCustomHandler().removeCallbacksAndMessages(null);
         stopService(serviceIntent);
         unbindService(serviceConnection);
         servicePollHandler.removeCallbacksAndMessages(null);
@@ -499,7 +501,7 @@ public class MainActivity extends Activity {
         stateU.setAdapter(autoCompleteAdapterState);
 
 
-        settingsU.setOnClickListener((v)->{
+        settingsU.setOnClickListener((v) -> {
             Intent intent = new Intent(this, SettingsActivity.class);
 
             startActivity(intent);

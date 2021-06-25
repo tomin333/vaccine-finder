@@ -1,4 +1,4 @@
-package com.technicles.vaccinefinder;
+package com.technicles.vaccinetracker;
 
 import android.content.Intent;
 import android.net.Uri;

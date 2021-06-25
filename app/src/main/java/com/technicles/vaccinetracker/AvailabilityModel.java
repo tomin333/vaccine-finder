@@ -1,4 +1,4 @@
-package com.technicles.vaccinefinder;
+package com.technicles.vaccinetracker;
 
 import androidx.annotation.Nullable;
 

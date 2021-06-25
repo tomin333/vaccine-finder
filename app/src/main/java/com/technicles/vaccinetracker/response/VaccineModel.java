@@ -1,4 +1,4 @@
-package com.technicles.vaccinefinder.response;
+package com.technicles.vaccinetracker.response;
 
 public class VaccineModel {
 

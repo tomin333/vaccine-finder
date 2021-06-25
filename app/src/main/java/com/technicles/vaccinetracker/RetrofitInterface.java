@@ -1,9 +1,9 @@
-package com.technicles.vaccinefinder;
+package com.technicles.vaccinetracker;
 
-import com.technicles.vaccinefinder.response.CenterResponse;
-import com.technicles.vaccinefinder.response.DistrictsResponse;
-import com.technicles.vaccinefinder.response.SessionResponse;
-import com.technicles.vaccinefinder.response.StateResponse;
+import com.technicles.vaccinetracker.response.CenterResponse;
+import com.technicles.vaccinetracker.response.DistrictsResponse;
+import com.technicles.vaccinetracker.response.SessionResponse;
+import com.technicles.vaccinetracker.response.StateResponse;
 
 import retrofit2.Call;
 import retrofit2.http.GET;

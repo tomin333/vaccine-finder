@@ -1,4 +1,4 @@
-package com.technicles.vaccinefinder.services;
+package com.technicles.vaccinetracker.services;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -13,18 +13,19 @@ import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
+import android.os.Handler;
 import android.os.IBinder;
 
-import com.technicles.vaccinefinder.AppConstants;
-import com.technicles.vaccinefinder.AvailabilityModel;
-import com.technicles.vaccinefinder.MainActivity;
-import com.technicles.vaccinefinder.R;
-import com.technicles.vaccinefinder.RetrofitInstance;
-import com.technicles.vaccinefinder.RetrofitInterface;
-import com.technicles.vaccinefinder.VaccineFinderUtil;
-import com.technicles.vaccinefinder.response.CenterModel;
-import com.technicles.vaccinefinder.response.CenterResponse;
-import com.technicles.vaccinefinder.response.SessionModel;
+import com.technicles.vaccinetracker.AppConstants;
+import com.technicles.vaccinetracker.AvailabilityModel;
+import com.technicles.vaccinetracker.MainActivity;
+import com.technicles.vaccinetracker.R;
+import com.technicles.vaccinetracker.RetrofitInstance;
+import com.technicles.vaccinetracker.RetrofitInterface;
+import com.technicles.vaccinetracker.VaccineFinderUtil;
+import com.technicles.vaccinetracker.response.CenterModel;
+import com.technicles.vaccinetracker.response.CenterResponse;
+import com.technicles.vaccinetracker.response.SessionModel;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +102,9 @@ public class VaccineLookupService extends Service {
 
 
     public void notification() {
+        Intent targetIntent = new Intent(this, MainActivity.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
         if (Build.VERSION.SDK_INT >= 26) {
             String CHANNEL_ID = AppConstants.CHANNEL_ID;
             AudioAttributes audioAttributes = new AudioAttributes.Builder()
@@ -118,6 +122,7 @@ public class VaccineLookupService extends Service {
                     .setContentTitle("Vaccine Finder")
                     .setContentText("Actively looking for vaccines")
                     .setSmallIcon(R.drawable.notif_icon)
+                    .setContentIntent(contentIntent)
                     .build();
 
             startForeground(1, notification);
@@ -127,6 +132,7 @@ public class VaccineLookupService extends Service {
                     .setContentText("Actively looking for vaccines")
                     .setSmallIcon(R.drawable.notif_icon)
                     .setSound(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.c1), AudioManager.STREAM_ALARM)
+                    .setContentIntent(contentIntent)
                     .build();
 
             startForeground(1, notification);
@@ -140,6 +146,7 @@ public class VaccineLookupService extends Service {
                 new NotificationCompat.Builder(this, CHANNEL_ID)
                         .setSmallIcon(R.drawable.notif_icon)
                         .setContentTitle("Vaccine slots found!!")
+                        .setAutoCancel(true)
                         .setSound(Uri.parse("android.resource://" + getPackageName() + "/" + R.raw.c1), AudioManager.STREAM_ALARM)
                         .setContentText("Slots available - tap to view details");
 
@@ -246,6 +253,12 @@ public class VaccineLookupService extends Service {
             }
             vaccineFoundNotify();
         }
+
+        if (availabilityModels.size() == 0) {
+            NotificationManager nManager =
+                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            nManager.cancel(AppConstants.NOTIFICATION_ID);
+        }
     }
 
     public boolean anyNewSessionIds(List<AvailabilityModel> list) {
@@ -271,10 +284,13 @@ public class VaccineLookupService extends Service {
                 apiCalls();
             }
 
-            customHandler.postDelayed(this, 60000);
+            customHandler.postDelayed(this, 30000);
         }
     };
 
+    public Handler getCustomHandler() {
+        return customHandler;
+    }
 
     public String getDistrictId() {
         return districtId;

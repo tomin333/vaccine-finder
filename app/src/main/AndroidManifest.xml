@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.technicles.vaccinefinder">
+    package="com.technicles.vaccinetracker">
 
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -16,11 +16,11 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".SettingsActivity"
-            android:theme="@style/Theme.Design.NoActionBar"
-            android:label="@string/title_activity_settings"></activity>
+            android:name="com.technicles.vaccinetracker.SettingsActivity"
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Theme.Design.NoActionBar"></activity>
         <activity
-            android:name=".MainActivity"
+            android:name="com.technicles.vaccinetracker.MainActivity"
             android:label="@string/app_name"
             android:launchMode="singleTop"
             android:theme="@style/Theme.Design.NoActionBar">
@@ -32,7 +32,7 @@
         </activity>
 
         <service
-            android:name=".services.VaccineLookupService"
+            android:name="com.technicles.vaccinetracker.services.VaccineLookupService"
             android:stopWithTask="false" />
     </application>
 

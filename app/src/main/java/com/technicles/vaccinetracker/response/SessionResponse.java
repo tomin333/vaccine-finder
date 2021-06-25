@@ -1,18 +1,18 @@
-package com.technicles.vaccinefinder.response;
+package com.technicles.vaccinetracker.response;
 
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
 
-public class StateResponse {
+public class SessionResponse {
     @SerializedName("responseCode")
     long responseCode;
 
     @SerializedName("responseCodeText")
     String responseCodeText;
 
-    @SerializedName("states")
-    List<StateModel> response;
+    @SerializedName("sessions")
+    List<SessionModel> response;
 
     public long getResponseCode() {
         return responseCode;
@@ -30,11 +30,11 @@ public class StateResponse {
         this.responseCodeText = responseCodeText;
     }
 
-    public List<StateModel> getResponse() {
+    public List<SessionModel> getResponse() {
         return response;
     }
 
-    public void setResponse(List<StateModel> response) {
+    public void setResponse(List<SessionModel> response) {
         this.response = response;
     }
 }

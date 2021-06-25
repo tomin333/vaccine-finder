@@ -1,12 +1,12 @@
-package com.technicles.vaccinefinder;
+package com.technicles.vaccinetracker;
 
 import android.content.Context;
 import android.widget.ArrayAdapter;
 import android.widget.Filter;
 import android.widget.Filterable;
 
-import com.technicles.vaccinefinder.response.DistrictModel;
-import com.technicles.vaccinefinder.response.DistrictsResponse;
+import com.technicles.vaccinetracker.response.DistrictModel;
+import com.technicles.vaccinetracker.response.DistrictsResponse;
 
 import java.util.ArrayList;
 import java.util.List;
